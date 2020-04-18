@@ -27,6 +27,7 @@ import "api/external/infra_proxy/response/policyfiles.proto";
 
 import "api/external/common/version/version.proto";
 
+// for option (chef.automate.api.iam.policy)
 import "components/automate-grpc/protoc-gen-policy/iam/annotations.proto";
 
 service InfraProxy {
@@ -44,11 +45,6 @@ service InfraProxy {
   rpc GetServer (infra_proxy.request.GetServer) returns (infra_proxy.response.GetServer) {
     option (google.api.http).get = "/infra/servers/{id}";
     option (chef.automate.api.iam.policy).resource = "infra:infraServers:{id}";
-    option (chef.automate.api.iam.policy).action = "infra:infraServers:get";
-  };
-  rpc GetServerByName (infra_proxy.request.GetServerByName) returns (infra_proxy.response.GetServer) {
-    option (google.api.http).get = "/infra/servers/{name}";
-    option (chef.automate.api.iam.policy).resource = "infra:infraServers:{name}";
     option (chef.automate.api.iam.policy).action = "infra:infraServers:get";
   };
   rpc CreateServer (infra_proxy.request.CreateServer) returns (infra_proxy.response.CreateServer) {
@@ -77,11 +73,6 @@ service InfraProxy {
   rpc GetOrg (infra_proxy.request.GetOrg) returns (infra_proxy.response.GetOrg) {
     option (google.api.http).get = "/infra/servers/{server_id}/orgs/{id}";
     option (chef.automate.api.iam.policy).resource = "infra:infraServers:{server_id}:orgs:{id}";
-    option (chef.automate.api.iam.policy).action = "infra:infraServerOrgs:get";
-  };
-  rpc GetOrgByName (infra_proxy.request.GetOrgByName) returns (infra_proxy.response.GetOrg) {
-    option (google.api.http).get = "/infra/servers/{server_id}/orgs/{name}";
-    option (chef.automate.api.iam.policy).resource = "infra:infraServers:{server_id}:orgs:{name}";
     option (chef.automate.api.iam.policy).action = "infra:infraServerOrgs:get";
   };
   rpc CreateOrg (infra_proxy.request.CreateOrg) returns (infra_proxy.response.CreateOrg) {
