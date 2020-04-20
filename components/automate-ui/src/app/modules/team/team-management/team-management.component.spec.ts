@@ -1,4 +1,5 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { MatOptionSelectionChange } from '@angular/material/core/option';
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -14,7 +15,6 @@ import {
 } from 'app/entities/teams/team.actions';
 import { TeamManagementComponent } from './team-management.component';
 import { FeatureFlagsService } from 'app/services/feature-flags/feature-flags.service';
-import { ChefKeyboardEvent } from 'app/types/material-types';
 
 describe('TeamManagementComponent', () => {
   let component: TeamManagementComponent;
@@ -114,7 +114,7 @@ describe('TeamManagementComponent', () => {
 
   describe('delete team', () => {
     let store: Store<NgrxStateAtom>;
-    const mockChefKeyEvent = new KeyboardEvent('keypress') as ChefKeyboardEvent;
+    const mockChefKeyEvent = new KeyboardEvent('keypress') as MatOptionSelectionChange;
     mockChefKeyEvent.isUserInput = true;
 
     const deleteTeam: Team = {

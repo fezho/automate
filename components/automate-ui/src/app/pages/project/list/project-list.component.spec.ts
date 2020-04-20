@@ -1,6 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MatOptionSelectionChange } from '@angular/material/core/option';
 import { StoreModule, Store } from '@ngrx/store';
 import { MockComponent } from 'ng2-mock-component';
 
@@ -16,7 +17,6 @@ import {
 } from 'app/entities/projects/project.actions';
 import { Project } from 'app/entities/projects/project.model';
 import { ProjectListComponent } from './project-list.component';
-import { ChefKeyboardEvent } from 'app/types/material-types';
 
 describe('ProjectListComponent', () => {
   let component: ProjectListComponent;
@@ -150,7 +150,7 @@ describe('ProjectListComponent', () => {
     });
 
     describe('delete modal', () => {
-      const mockChefKeyEvent = new KeyboardEvent('keypress') as ChefKeyboardEvent;
+      const mockChefKeyEvent = new KeyboardEvent('keypress') as MatOptionSelectionChange;
       mockChefKeyEvent.isUserInput = true;
 
       using([
@@ -185,7 +185,7 @@ describe('ProjectListComponent', () => {
     });
 
     describe('message modal', () => {
-      const mockChefKeyEvent = new KeyboardEvent('keypress') as ChefKeyboardEvent;
+      const mockChefKeyEvent = new KeyboardEvent('keypress') as MatOptionSelectionChange;
       mockChefKeyEvent.isUserInput = true;
 
       using([
