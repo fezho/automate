@@ -251,7 +251,7 @@ const routes: Routes = [
               component: CookbooksListComponent
             },
             {
-              path: ':id/org/:orgid/cookbooks/:name',
+              path: ':id/org/:orgid/cookbooks/:cookbook_name',
               component: CookbookDetailsComponent
             }
           ]
