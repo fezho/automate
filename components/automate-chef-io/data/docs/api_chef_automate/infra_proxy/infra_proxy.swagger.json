@@ -65,6 +65,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Chef Infra Server ID.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -87,6 +88,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Chef Infra Server ID.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -109,6 +111,7 @@
         "parameters": [
           {
             "name": "id",
+            "description": "Chef Infra Server ID.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -120,30 +123,6 @@
             "schema": {
               "$ref": "#/definitions/chef.automate.api.infra_proxy.request.UpdateServer"
             }
-          }
-        ],
-        "tags": [
-          "InfraProxy"
-        ]
-      }
-    },
-    "/infra/servers/{name}": {
-      "get": {
-        "operationId": "GetServerByName",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/chef.automate.api.infra_proxy.response.GetServer"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
           }
         ],
         "tags": [
@@ -300,38 +279,6 @@
             "schema": {
               "$ref": "#/definitions/chef.automate.api.infra_proxy.request.UpdateOrg"
             }
-          }
-        ],
-        "tags": [
-          "InfraProxy"
-        ]
-      }
-    },
-    "/infra/servers/{server_id}/orgs/{name}": {
-      "get": {
-        "operationId": "GetOrgByName",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/chef.automate.api.infra_proxy.response.GetOrg"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "server_id",
-            "description": "Chef Infra Server ID.",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "name",
-            "description": "Chef organization name.",
-            "in": "path",
-            "required": true,
-            "type": "string"
           }
         ],
         "tags": [
@@ -966,6 +913,10 @@
     "chef.automate.api.infra_proxy.request.CreateOrg": {
       "type": "object",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "Chef organization ID."
+        },
         "name": {
           "type": "string",
           "description": "Chef organization name."
@@ -994,17 +945,21 @@
     "chef.automate.api.infra_proxy.request.CreateServer": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
+        "id": {
+          "type": "string",
+          "description": "Chef Infra Server ID."
         },
-        "description": {
-          "type": "string"
+        "name": {
+          "type": "string",
+          "description": "Chef Infra Server name."
         },
         "fqdn": {
-          "type": "string"
+          "type": "string",
+          "description": "Chef Infra Server FQDN."
         },
         "ip_address": {
-          "type": "string"
+          "type": "string",
+          "description": "Chef infra Server IP address."
         }
       }
     },
@@ -1044,19 +999,20 @@
       "type": "object",
       "properties": {
         "id": {
-          "type": "string"
+          "type": "string",
+          "description": "Chef Infra Server ID."
         },
         "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Chef Infra Server name."
         },
         "fqdn": {
-          "type": "string"
+          "type": "string",
+          "description": "Chef Infra Server FQDN."
         },
         "ip_address": {
-          "type": "string"
+          "type": "string",
+          "description": "Chef Infra Server IP address."
         }
       }
     },
@@ -1386,7 +1342,8 @@
       "type": "object",
       "properties": {
         "server": {
-          "$ref": "#/definitions/chef.automate.api.infra_proxy.response.Server"
+          "$ref": "#/definitions/chef.automate.api.infra_proxy.response.Server",
+          "description": "Chef Infra Server."
         }
       }
     },
@@ -1433,7 +1390,8 @@
       "type": "object",
       "properties": {
         "server": {
-          "$ref": "#/definitions/chef.automate.api.infra_proxy.response.Server"
+          "$ref": "#/definitions/chef.automate.api.infra_proxy.response.Server",
+          "description": "Chef Infra Server."
         }
       }
     },
@@ -1535,7 +1493,8 @@
       "type": "object",
       "properties": {
         "server": {
-          "$ref": "#/definitions/chef.automate.api.infra_proxy.response.Server"
+          "$ref": "#/definitions/chef.automate.api.infra_proxy.response.Server",
+          "description": "Chef Infra Server."
         }
       }
     },
@@ -1546,7 +1505,8 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/chef.automate.api.infra_proxy.response.Server"
-          }
+          },
+          "description": "Chef Infra Servers."
         }
       }
     },
@@ -1900,23 +1860,25 @@
       "type": "object",
       "properties": {
         "id": {
-          "type": "string"
+          "type": "string",
+          "description": "Chef Infra Server ID."
         },
         "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Chef Infra Server name."
         },
         "fqdn": {
-          "type": "string"
+          "type": "string",
+          "description": "Chef Infra Server FQDN."
         },
         "ip_address": {
-          "type": "string"
+          "type": "string",
+          "description": "Chef Infra Server IP address."
         },
         "orgs_count": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "description": "Chef organizations count associated with Chef Infra Server."
         }
       }
     },
@@ -1942,7 +1904,8 @@
       "type": "object",
       "properties": {
         "server": {
-          "$ref": "#/definitions/chef.automate.api.infra_proxy.response.Server"
+          "$ref": "#/definitions/chef.automate.api.infra_proxy.response.Server",
+          "description": "Chef Infra Server."
         }
       }
     }
