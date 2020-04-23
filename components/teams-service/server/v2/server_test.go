@@ -12,8 +12,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	authz "github.com/chef/automate/api/interservice/authz/common"
-	authz_v2 "github.com/chef/automate/api/interservice/authz/v2"
+	"github.com/chef/automate/api/interservice/authz"
 	teams "github.com/chef/automate/api/interservice/teams/v2"
 	"github.com/chef/automate/lib/grpc/auth_context"
 	"github.com/chef/automate/lib/grpc/grpctest"
@@ -51,7 +50,7 @@ func TestTeamsGRPC(t *testing.T) {
 
 		// If ciMode, run in-memory AND PG
 		// else just run PG.
-		if os.Getenv("CI") == "true, *authz.SubjectPurgeServerMock" {
+		if os.Getenv("CI") == "true" {
 			serv, serviceRef, conn, close, authzMock := setupTeamsService(ctx, t, l, nil)
 			runAllServerTests(t, serv, serviceRef, authzMock, teams.NewTeamsClient(conn), close)
 		}
@@ -60,7 +59,7 @@ func TestTeamsGRPC(t *testing.T) {
 
 func runAllServerTests(
 	t *testing.T, serv *Server, serviceRef *service.Service,
-	authzMock *authz.SubjectPurgeServerMock, cl teams.TeamsClient, close func()) {
+	authzMock *authz.PoliciesServerMock, cl teams.TeamsClient, close func()) {
 
 	t.Helper()
 	defer close()
@@ -2050,7 +2049,7 @@ func cleanupTeam(t *testing.T, cl teams.TeamsClient, id string) {
 // Pass nil for migrationConfig if you want in-memory server.
 func setupTeamsService(ctx context.Context, t *testing.T, l logger.Logger,
 	migrationConfig *migration.Config) (*Server, *service.Service,
-	*grpc.ClientConn, func(), *authz.SubjectPurgeServerMock) {
+	*grpc.ClientConn, func(), *authz.PoliciesServerMock) {
 
 	t.Helper()
 
@@ -2061,32 +2060,28 @@ func setupTeamsService(ctx context.Context, t *testing.T, l logger.Logger,
 	authzConnFactory := secureconn.NewFactory(*authzCerts)
 	grpcAuthz := authzConnFactory.NewServer()
 
-	mockCommon := authz.NewSubjectPurgeServerMock()
-	mockCommon.PurgeSubjectFromPoliciesFunc = defaultMockPurgeFunc
-	authz.RegisterSubjectPurgeServer(grpcAuthz, mockCommon)
+	mockPolicies := authz.NewPoliciesServerMock()
+	mockPolicies.GetPolicyVersionFunc = defaultGetPolicyVersionFunc
+	mockPolicies.PurgeSubjectFromPoliciesFunc = defaultMockPurgeFunc
+	authz.RegisterPoliciesServer(grpcAuthz, mockPolicies)
 
-	mockV2Policies := authz_v2.NewPoliciesServerMock()
-	mockV2Policies.GetPolicyVersionFunc = defaultGetPolicyVersionFunc
-	authz_v2.RegisterPoliciesServer(grpcAuthz, mockV2Policies)
-
-	mockV2Authz := authz_v2.NewAuthorizationServerMock()
-	mockV2Authz.ValidateProjectAssignmentFunc = defaultValidateProjectAssignmentFunc
-	authz_v2.RegisterAuthorizationServer(grpcAuthz, mockV2Authz)
+	mockAuthz := authz.NewAuthorizationServerMock()
+	mockAuthz.ValidateProjectAssignmentFunc = defaultValidateProjectAssignmentFunc
+	authz.RegisterAuthorizationServer(grpcAuthz, mockAuthz)
 
 	authzServer := grpctest.NewServer(grpcAuthz)
 	authzConn, err := authzConnFactory.Dial("authz-service", authzServer.URL)
 	require.NoError(t, err)
 
-	authzClient := authz.NewSubjectPurgeClient(authzConn)
-	authzV2PoliciesClient := authz_v2.NewPoliciesClient(authzConn)
-	authzV2AuthorizationClient := authz_v2.NewAuthorizationClient(authzConn)
+	authzPoliciesClient := authz.NewPoliciesClient(authzConn)
+	authzAuthorizationClient := authz.NewAuthorizationClient(authzConn)
 
 	var serviceRef *service.Service
 	if migrationConfig == nil {
-		serviceRef, err = service.NewInMemoryService(l, connFactory, authzClient)
+		serviceRef, err = service.NewInMemoryService(l, connFactory, authzPoliciesClient)
 	} else {
 		serviceRef, err = service.NewPostgresService(l, connFactory,
-			*migrationConfig, authzClient, authzV2PoliciesClient, authzV2AuthorizationClient)
+			*migrationConfig, authzPoliciesClient, authzAuthorizationClient)
 	}
 	if err != nil {
 		t.Fatalf("could not create server: %s", err)
@@ -2103,7 +2098,7 @@ func setupTeamsService(ctx context.Context, t *testing.T, l logger.Logger,
 	if err != nil {
 		t.Fatalf("connecting to grpc endpoint: %s", err)
 	}
-	return v2Server, serviceRef, conn, func() { g.Close(); authzServer.Close() }, mockCommon
+	return v2Server, serviceRef, conn, func() { g.Close(); authzServer.Close() }, mockPolicies
 }
 
 func resetState(ctx context.Context, t *testing.T, serviceRef *service.Service) {
@@ -2121,18 +2116,18 @@ func defaultMockPurgeFunc(context.Context,
 }
 
 func defaultGetPolicyVersionFunc(context.Context,
-	*authz_v2.GetPolicyVersionReq) (*authz_v2.GetPolicyVersionResp, error) {
-	return &authz_v2.GetPolicyVersionResp{
-		Version: &authz_v2.Version{
-			Major: authz_v2.Version_V2,
-			Minor: authz_v2.Version_V1,
+	*authz.GetPolicyVersionReq) (*authz.GetPolicyVersionResp, error) {
+	return &authz.GetPolicyVersionResp{
+		Version: &authz.Version{
+			Major: authz.Version_V2,
+			Minor: authz.Version_V1,
 		},
 	}, nil
 }
 
 func defaultValidateProjectAssignmentFunc(context.Context,
-	*authz_v2.ValidateProjectAssignmentReq) (*authz_v2.ValidateProjectAssignmentResp, error) {
-	return &authz_v2.ValidateProjectAssignmentResp{}, nil
+	*authz.ValidateProjectAssignmentReq) (*authz.ValidateProjectAssignmentResp, error) {
+	return &authz.ValidateProjectAssignmentResp{}, nil
 }
 
 func insertProjectsIntoNewContext(projects []string) context.Context {

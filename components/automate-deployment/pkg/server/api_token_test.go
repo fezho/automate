@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/chef/automate/api/interservice/authn"
-	authz_v2 "github.com/chef/automate/api/interservice/authz/v2"
+	"github.com/chef/automate/api/interservice/authz"
 	api "github.com/chef/automate/api/interservice/deployment"
 	"github.com/chef/automate/lib/grpc/grpctest"
 	"github.com/chef/automate/lib/grpc/secureconn"
@@ -30,10 +30,10 @@ func TestGenerateAdminToken(t *testing.T) {
 	defer authnServer.Close()
 
 	serviceCerts = helpers.LoadDevCerts(t, "authz-service")
-	mockV2PolicyServer := authz_v2.NewPoliciesServerMock()
+	mockV2PolicyServer := authz.NewPoliciesServerMock()
 	connFactory = secureconn.NewFactory(*serviceCerts)
 	g = connFactory.NewServer()
-	authz_v2.RegisterPoliciesServer(g, mockV2PolicyServer)
+	authz.RegisterPoliciesServer(g, mockV2PolicyServer)
 	authzServer := grpctest.NewServer(g)
 	defer authzServer.Close()
 
@@ -58,13 +58,13 @@ func TestGenerateAdminToken(t *testing.T) {
 		}
 
 		mockV2PolicyServer.CreatePolicyFunc = func(
-			_ context.Context, req *authz_v2.CreatePolicyReq) (*authz_v2.Policy, error) {
+			_ context.Context, req *authz.CreatePolicyReq) (*authz.Policy, error) {
 
 			assert.Equal(t, "admin-token-"+testID, req.Id)
 			assert.Equal(t, "admin policy for token "+testID, req.Name)
-			assert.Equal(t, authz_v2.Statement_ALLOW, req.Statements[0].Effect)
+			assert.Equal(t, authz.Statement_ALLOW, req.Statements[0].Effect)
 
-			return &authz_v2.Policy{}, nil
+			return &authz.Policy{}, nil
 		}
 
 		req := &api.GenerateAdminTokenRequest{Name: testName}
@@ -87,11 +87,11 @@ func TestGenerateAdminToken(t *testing.T) {
 		}
 
 		mockV2PolicyServer.CreatePolicyFunc = func(
-			_ context.Context, req *authz_v2.CreatePolicyReq) (*authz_v2.Policy, error) {
+			_ context.Context, req *authz.CreatePolicyReq) (*authz.Policy, error) {
 
 			assert.Equal(t, "admin-token-"+testID, req.Id)
 			assert.Equal(t, "admin policy for token "+testID, req.Name)
-			assert.Equal(t, authz_v2.Statement_ALLOW, req.Statements[0].Effect)
+			assert.Equal(t, authz.Statement_ALLOW, req.Statements[0].Effect)
 
 			return nil, status.Error(codes.AlreadyExists, "policy with id \"diagnostics-admin-token\" already exists")
 		}
@@ -116,11 +116,11 @@ func TestGenerateAdminToken(t *testing.T) {
 		}
 
 		mockV2PolicyServer.CreatePolicyFunc = func(
-			_ context.Context, req *authz_v2.CreatePolicyReq) (*authz_v2.Policy, error) {
+			_ context.Context, req *authz.CreatePolicyReq) (*authz.Policy, error) {
 
 			assert.Equal(t, "admin-token-"+testID, req.Id)
 			assert.Equal(t, "admin policy for token "+testID, req.Name)
-			assert.Equal(t, authz_v2.Statement_ALLOW, req.Statements[0].Effect)
+			assert.Equal(t, authz.Statement_ALLOW, req.Statements[0].Effect)
 
 			return nil, status.Error(codes.Internal, "unexpected error")
 		}

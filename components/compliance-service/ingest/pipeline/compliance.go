@@ -7,7 +7,7 @@ import (
 
 	"time"
 
-	iam_v2 "github.com/chef/automate/api/interservice/authz/v2"
+	"github.com/chef/automate/api/interservice/authz"
 	"github.com/chef/automate/api/interservice/compliance/ingest/events/compliance"
 	"github.com/chef/automate/api/interservice/nodemanager/manager"
 	"github.com/chef/automate/components/compliance-service/ingest/ingestic"
@@ -20,7 +20,7 @@ type Compliance struct {
 	in chan<- message.Compliance
 }
 
-func NewCompliancePipeline(client *ingestic.ESClient, authzClient iam_v2.ProjectsClient, nodeMgrClient manager.NodeManagerServiceClient) Compliance {
+func NewCompliancePipeline(client *ingestic.ESClient, authzClient authz.ProjectsClient, nodeMgrClient manager.NodeManagerServiceClient) Compliance {
 	in := make(chan message.Compliance, 100)
 	compliancePipeline(in,
 		processor.ComplianceProfile(client),

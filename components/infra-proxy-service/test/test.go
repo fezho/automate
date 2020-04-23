@@ -12,8 +12,7 @@ import (
 	"google.golang.org/grpc"
 
 	secrets "github.com/chef/automate/api/external/secrets"
-	authz "github.com/chef/automate/api/interservice/authz/common"
-	authz_v2 "github.com/chef/automate/api/interservice/authz/v2"
+	"github.com/chef/automate/api/interservice/authz"
 	infra_proxy "github.com/chef/automate/api/interservice/infra_proxy/service"
 	"github.com/chef/automate/lib/grpc/auth_context"
 	"github.com/chef/automate/lib/grpc/grpctest"
@@ -70,7 +69,7 @@ func MigrationConfigIfPGTestsToBeRun(l logger.Logger, migrationPath string) (*mi
 // SetupInfraProxyService provides the connection service client.
 func SetupInfraProxyService(ctx context.Context,
 	t *testing.T, l logger.Logger,
-	migrationConfig migration.Config) (*server.Server, *service.Service, *grpc.ClientConn, func(), *authz.SubjectPurgeServerMock) {
+	migrationConfig migration.Config) (*server.Server, *service.Service, *grpc.ClientConn, func(), *authz.PoliciesServerMock) {
 
 	t.Helper()
 
@@ -81,24 +80,22 @@ func SetupInfraProxyService(ctx context.Context,
 	authzConnFactory := secureconn.NewFactory(*authzCerts)
 	grpcAuthz := authzConnFactory.NewServer()
 
-	mockCommon := authz.NewSubjectPurgeServerMock()
-	mockCommon.PurgeSubjectFromPoliciesFunc = DefaultMockPurgeFunc
-	authz.RegisterSubjectPurgeServer(grpcAuthz, mockCommon)
+	mockAuthz := authz.NewAuthorizationServerMock()
+	mockAuthz.ValidateProjectAssignmentFunc = defaultValidateProjectAssignmentFunc
+	authz.RegisterAuthorizationServer(grpcAuthz, mockAuthz)
 
-	mockV2Authz := authz_v2.NewAuthorizationServerMock()
-	mockV2Authz.ValidateProjectAssignmentFunc = defaultValidateProjectAssignmentFunc
-	authz_v2.RegisterAuthorizationServer(grpcAuthz, mockV2Authz)
+	mockPolicies := authz.NewPoliciesServerMock()
+	mockPolicies.PurgeSubjectFromPoliciesFunc = DefaultMockPurgeFunc
+	authz.RegisterPoliciesServer(grpcAuthz, mockPolicies)
 
 	authzServer := grpctest.NewServer(grpcAuthz)
 	authzConn, err := authzConnFactory.Dial("authz-service", authzServer.URL)
 	require.NoError(t, err)
 
-	authzClient := authz.NewSubjectPurgeClient(authzConn)
-	authzV2AuthorizationClient := authz_v2.NewAuthorizationClient(authzConn)
+	authzClient := authz.NewAuthorizationClient(authzConn)
 
 	secretsClient := secrets.NewMockSecretsServiceClient(gomock.NewController(t))
-	serviceRef, err := service.Start(l, migrationConfig, connFactory, secretsClient,
-		authzClient, authzV2AuthorizationClient)
+	serviceRef, err := service.Start(l, migrationConfig, connFactory, secretsClient, authzClient)
 
 	if err != nil {
 		t.Fatalf("could not create server: %s", err)
@@ -116,7 +113,7 @@ func SetupInfraProxyService(ctx context.Context,
 	if err != nil {
 		t.Fatalf("connecting to grpc endpoint: %s", err)
 	}
-	return newServer, serviceRef, conn, func() { g.Close(); authzServer.Close() }, mockCommon
+	return newServer, serviceRef, conn, func() { g.Close(); authzServer.Close() }, mockPolicies
 }
 
 // ResetState reset the state
@@ -142,6 +139,6 @@ func DefaultMockPurgeFunc(context.Context,
 }
 
 func defaultValidateProjectAssignmentFunc(context.Context,
-	*authz_v2.ValidateProjectAssignmentReq) (*authz_v2.ValidateProjectAssignmentResp, error) {
-	return &authz_v2.ValidateProjectAssignmentResp{}, nil
+	*authz.ValidateProjectAssignmentReq) (*authz.ValidateProjectAssignmentResp, error) {
+	return &authz.ValidateProjectAssignmentResp{}, nil
 }

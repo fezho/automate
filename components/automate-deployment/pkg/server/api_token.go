@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/chef/automate/api/interservice/authn"
-	authz_v2 "github.com/chef/automate/api/interservice/authz/v2"
+	"github.com/chef/automate/api/interservice/authz"
 	api "github.com/chef/automate/api/interservice/deployment"
 	"github.com/chef/automate/lib/grpc/auth_context"
 	"github.com/chef/automate/lib/grpc/secureconn"
@@ -61,7 +61,7 @@ func generateAdminToken(ctx context.Context,
 
 	defer authzConnection.Close() // nolint: errcheck
 
-	authzV2Client := authz_v2.NewPoliciesClient(authzConnection)
+	authzV2Client := authz.NewPoliciesClient(authzConnection)
 
 	response, err := authnClient.CreateToken(ctx, &authn.CreateTokenReq{
 		Id:     uuid.Must(uuid.NewV4()).String(),
@@ -73,12 +73,12 @@ func generateAdminToken(ctx context.Context,
 	}
 	tokenID := response.Id
 
-	_, err = authzV2Client.CreatePolicy(ctx, &authz_v2.CreatePolicyReq{
+	_, err = authzV2Client.CreatePolicy(ctx, &authz.CreatePolicyReq{
 		Id:   "admin-token-" + tokenID,
 		Name: "admin policy for token " + tokenID,
-		Statements: []*authz_v2.Statement{
+		Statements: []*authz.Statement{
 			{
-				Effect:    authz_v2.Statement_ALLOW,
+				Effect:    authz.Statement_ALLOW,
 				Resources: []string{"*"},
 				Actions:   []string{"*"},
 				Projects:  []string{"*"},

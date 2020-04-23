@@ -17,7 +17,7 @@ import (
 	eventsapi "github.com/chef/automate/api/interservice/event"
 	"github.com/chef/automate/api/interservice/nodemanager/manager"
 	"github.com/chef/automate/api/interservice/nodemanager/nodes"
-	"github.com/chef/automate/components/compliance-service/utils/logging"
+	"github.com/chef/automate/components/compliance-service/utils/logging"s
 	"github.com/chef/automate/components/nodemanager-service/config"
 	"github.com/chef/automate/components/nodemanager-service/managers"
 	"github.com/chef/automate/components/nodemanager-service/pgdb"
@@ -32,7 +32,7 @@ import (
 	"github.com/chef/automate/lib/grpc/secureconn"
 	"github.com/chef/automate/lib/version"
 
-	iam_v2 "github.com/chef/automate/api/interservice/authz/v2"
+	"github.com/chef/automate/api/interservice/authz"
 	project_update_lib "github.com/chef/automate/lib/authz"
 	"github.com/chef/automate/lib/tracing"
 )
@@ -245,7 +245,7 @@ func serve(ctx context.Context, config *config.Nodemanager, connFactory *securec
 		}
 		defer authzConn.Close() // nolint: errcheck
 
-		authzProjectsClient := iam_v2.NewProjectsClient(authzConn)
+		authzProjectsClient := authz.NewProjectsClient(authzConn)
 
 		projectUpdateManager, err := createProjectUpdateCerealManager(connFactory, config.Cereal.Endpoint)
 		if err != nil {
