@@ -15,7 +15,7 @@
 
         <chef-toolbar>
 
-        <app-authorized [anyOf]="['/datafeed/destination', 'post']">
+        <app-authorized [anyOf]="['/api/v0/datafeed/destination', 'post']">
           <div *ngIf="(destinations$ | async)?.length === 0" class="empty-state">
             <p>Create a data feed to get started!</p>
           </div>
@@ -26,7 +26,7 @@
 
         </chef-toolbar>
 
-        <app-authorized [anyOf]="['/datafeed/destinations', 'post']">
+        <app-authorized [anyOf]="['/api/v0/datafeed/destinations', 'post']">
           <chef-table *ngIf="(destinations$ | async)?.length > 0" id="destinations-list">
             <chef-thead>
               <chef-tr>
