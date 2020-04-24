@@ -16,7 +16,7 @@ function actionsUrl() {
 }
 
 function chefRunEndpoint() {
-  return helpers.REST_SERVICE_URI + '/events/chef/run';
+  return helpers.REST_SERVICE_URI + '/api/v0/events/chef/run';
 }
 
 describe("/events/chef/action", function () {
